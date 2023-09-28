@@ -1,0 +1,4 @@
+ctgan==0.5.0
+pandas_profiling
+boto3
+ipython
