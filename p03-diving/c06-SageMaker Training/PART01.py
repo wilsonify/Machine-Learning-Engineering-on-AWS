@@ -1,39 +1,26 @@
-# ---
-# jupyter:
-#   jupytext:
-#     text_representation:
-#       extension: .py
-#       format_name: light
-#       format_version: '1.5'
-#       jupytext_version: 1.15.2
-#   kernelspec:
-#     display_name: Python 3 (Data Science)
-#     language: python
-#     name: python3__SAGEMAKER_INTERNAL__arn:aws:sagemaker:us-west-2:236514542706:image/datascience-1.0
-# ---
 
 # !rm -rf tmp && mkdir -p tmp
 
 # !wget -O tmp/batch1.zip https://bit.ly/37zmQeb
 
 # %%time
+
 # !cd tmp && unzip batch1.zip && rm batch1.zip
 
 # !ls -RF
 
 # !pip3 install ipyplot
 
-# +
-import ipyplot
 import glob
 
-for i in range(0,10):    
+# +
+import ipyplot
+
+for i in range(0, 10):
     image_files = glob.glob(f"tmp/train/{i}/*.png")
-    
     print(f'---{i}---')
-    
-    ipyplot.plot_images(image_files, 
-                        max_images=5, 
+    ipyplot.plot_images(image_files,
+                        max_images=5,
                         img_width=128)
 # -
 
@@ -61,8 +48,8 @@ region_name = boto3.Session().region_name
 
 # +
 image = sagemaker.image_uris.retrieve(
-    "image-classification", 
-    region_name, 
+    "image-classification",
+    region_name,
     "1"
 )
 
@@ -72,18 +59,19 @@ image
 # +
 def map_path(source):
     return 's3://{}/{}/{}'.format(
-        s3_bucket, 
-        prefix, 
+        s3_bucket,
+        prefix,
         source
     )
 
+
 def map_input(source):
     path = map_path(source)
-    
+
     return sagemaker.inputs.TrainingInput(
-        path, 
-        distribution='FullyReplicated', 
-        content_type='application/x-image', 
+        path,
+        distribution='FullyReplicated',
+        content_type='application/x-image',
         s3_data_type='S3Prefix'
     )
 
@@ -92,7 +80,7 @@ def map_input(source):
 
 data_channels = {}
 
-channels = ["train", 
+channels = ["train",
             "validation",
             "train_lst",
             "validation_lst"]
@@ -105,8 +93,8 @@ output_path
 
 estimator = sagemaker.estimator.Estimator(
     image,
-    role, 
-    instance_count=2, 
+    role,
+    instance_count=2,
     instance_type='ml.p2.xlarge',
     output_path=output_path,
     sagemaker_session=session,
@@ -122,7 +110,7 @@ hyperparameters = {
     'epochs': 3,
     'learning_rate': 0.01,
     'top_k': 5,
-    'precision_dtype': 'float32'    
+    'precision_dtype': 'float32'
 }
 
 estimator.set_hyperparameters(**hyperparameters)
@@ -144,8 +132,8 @@ job_name = estimator.latest_training_job.name
 # %store image
 
 endpoint = estimator.deploy(
-    initial_instance_count = 1,
-    instance_type = 'ml.m5.xlarge'
+    initial_instance_count=1,
+    instance_type='ml.m5.xlarge'
 )
 
 # +
@@ -158,12 +146,13 @@ endpoint.serializer = IdentitySerializer(
 # +
 import json
 
+
 def get_class_from_results(results):
     results_prob_list = json.loads(results)
     best_index = results_prob_list.index(
         max(results_prob_list)
     )
-    
+
     return {
         0: "ZERO",
         1: "ONE",
@@ -181,15 +170,16 @@ def get_class_from_results(results):
 # +
 from IPython.display import Image, display
 
+
 def predict(filename, endpoint=endpoint):
     byte_array_input = None
-    
+
     with open(filename, 'rb') as image:
         f = image.read()
         byte_array_input = bytearray(f)
-        
+
     display(Image(filename))
-        
+
     results = endpoint.predict(byte_array_input)
     return get_class_from_results(results)
 
@@ -198,8 +188,8 @@ def predict(filename, endpoint=endpoint):
 
 # !ls tmp/test
 
-# results = !ls -1 tmp/test
-for filename in results:
+# results = !ls -1
+for filename in glob.glob("tmp/test"):
     print(predict(f"tmp/test/{filename}"))
 
 endpoint.delete_endpoint()

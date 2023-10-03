@@ -1,0 +1,47 @@
+{
+  "StartAt": "DataPreparation",
+  "States": {
+    "DataPreparation": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::sagemaker:createProcessingJob.sync",
+      "Parameters": {
+        "ProcessingJobName": "data-prep-job",
+        "ProcessingInputs": [],
+        "ProcessingOutputConfig": {
+          "Outputs": []
+        }
+      },
+      "Next": "SplitData"
+    },
+    "SplitData": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::sagemaker:createProcessingJob.sync",
+      "Next": "TrainModel"
+    },
+    "TrainModel": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::sagemaker:createTrainingJob.sync",
+      "Next": "EvaluateModel"
+    },
+    "EvaluateModel": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::sagemaker:createProcessingJob.sync",
+      "Next": "ValidateModel"
+    },
+    "ValidateModel": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::sagemaker:createProcessingJob.sync",
+      "Next": "DeployModel"
+    },
+    "DeployModel": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::sagemaker:createModel.sync",
+      "Next": "PlotImages"
+    },
+    "PlotImages": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:REGION:ACCOUNT_ID:function:YOUR_LAMBDA_FUNCTION",
+      "End": true
+    }
+  }
+}

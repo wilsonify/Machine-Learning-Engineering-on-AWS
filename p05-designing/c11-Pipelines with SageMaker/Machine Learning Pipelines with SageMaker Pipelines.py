@@ -24,35 +24,30 @@ prefix = 'pipeline'
 # !aws s3 mb s3://{s3_bucket}
 
 source_path = f's3://{s3_bucket}/{prefix}' + \
-               '/source/dataset.all.csv'
+              '/source/dataset.all.csv'
 
 # !aws s3 cp tmp/bookings.all.csv {source_path}
 
 # +
-import boto3
 import sagemaker
-
 from sagemaker import get_execution_role
+from sagemaker.inputs import TrainingInput
+from sagemaker.processing import (
+    ProcessingInput,
+    ProcessingOutput
+)
 from sagemaker.sklearn.processing import (
     SKLearnProcessor
-)
-from sagemaker.workflow.steps import (
-    ProcessingStep, 
-    TrainingStep
-)
-from sagemaker.workflow.step_collections import (
-    RegisterModel
-)
-from sagemaker.processing import (
-    ProcessingInput, 
-    ProcessingOutput
 )
 from sagemaker.workflow.parameters import (
     ParameterString
 )
-from sagemaker.inputs import TrainingInput
-from sagemaker.estimator import Estimator
 from sagemaker.workflow.pipeline import Pipeline
+from sagemaker.workflow.steps import (
+    ProcessingStep,
+    TrainingStep
+)
+
 # -
 
 role = get_execution_role()
@@ -61,7 +56,7 @@ session = sagemaker.Session()
 
 input_data = ParameterString(
     name="RawData",
-    default_value=source_path, 
+    default_value=source_path,
 )
 
 # +
@@ -72,7 +67,7 @@ input_raw = ProcessingInput(
 
 output_split = ProcessingOutput(
     output_name="split",
-    source='/opt/ml/processing/output/', 
+    source='/opt/ml/processing/output/',
     destination=f's3://{s3_bucket}/{prefix}/output/'
 )
 
@@ -85,7 +80,7 @@ processor = SKLearnProcessor(
 )
 
 step_process = ProcessingStep(
-    name="PrepareData",  
+    name="PrepareData",
     processor=processor,
     inputs=[input_raw],
     outputs=[output_split],
@@ -115,8 +110,8 @@ train_image_uri = image_uris.retrieve(
 from sagemaker import script_uris
 
 train_source_uri = script_uris.retrieve(
-    model_id=model_id, 
-    model_version="*", 
+    model_id=model_id,
+    model_version="*",
     script_scope="training"
 )
 # -
@@ -127,8 +122,8 @@ train_source_uri = script_uris.retrieve(
 from sagemaker import model_uris
 
 train_model_uri = model_uris.retrieve(
-    model_id=model_id, 
-    model_version="*", 
+    model_id=model_id,
+    model_version="*",
     model_scope="training"
 )
 # -
@@ -155,18 +150,14 @@ estimator = Estimator(
 from sagemaker.hyperparameters import retrieve_default
 
 hyperparameters = retrieve_default(
-    model_id=model_id, 
+    model_id=model_id,
     model_version="*"
 )
 hyperparameters["verbosity"] = "3"
 estimator.set_hyperparameters(**hyperparameters)
 
 # +
-s3_data = step_process  \
-              .properties  \
-              .ProcessingOutputConfig  \
-              .Outputs["split"]  \
-              .S3Output.S3Uri
+s3_data = step_process.properties.ProcessingOutputConfig.Outputs["split"].S3Output.S3Uri
 
 step_train = TrainingStep(
     name="TrainModel",
@@ -179,11 +170,7 @@ step_train = TrainingStep(
 )
 
 # +
-s3_data = step_process         \
-    .properties                \
-    .ProcessingOutputConfig    \
-    .Outputs["split"]          \
-    .S3Output.S3Uri            \
+s3_data = step_process.properties.ProcessingOutputConfig.Outputs["split"].S3Output.S3Uri
 
 step_train = TrainingStep(
     name="TrainModel",
@@ -206,8 +193,8 @@ deploy_image_uri = image_uris.retrieve(
 )
 
 deploy_source_uri = script_uris.retrieve(
-    model_id=model_id, 
-    model_version="*", 
+    model_id=model_id,
+    model_version="*",
     script_scope="inference"
 )
 # -
@@ -215,13 +202,13 @@ deploy_source_uri = script_uris.retrieve(
 # !aws s3 cp {deploy_source_uri} tmp/sourcedir.tar.gz
 
 # +
-updated_source_uri = f's3://{s3_bucket}/{prefix}' + \
-                      '/sourcedir/sourcedir.tar.gz'
+updated_source_uri = f's3://{s3_bucket}/{prefix}/sourcedir/sourcedir.tar.gz'
 
 # !aws s3 cp tmp/sourcedir.tar.gz {updated_source_uri}
 
 # +
 import uuid
+
 
 def random_string():
     return uuid.uuid4().hex.upper()[0:6]
@@ -234,12 +221,8 @@ from sagemaker.workflow.pipeline_context import \
 
 pipeline_session = PipelineSession()
 
-model_data = step_train    \
-    .properties            \
-    .ModelArtifacts        \
-    .S3ModelArtifacts      \
-
-model = Model(image_uri=deploy_image_uri, 
+model_data = step_train.properties.ModelArtifacts.S3ModelArtifacts
+model = Model(image_uri=deploy_image_uri,
               source_dir=updated_source_uri,
               model_data=model_data,
               role=role,
@@ -271,14 +254,8 @@ pipeline_name = f"PARTIAL-PIPELINE"
 
 partial_pipeline = Pipeline(
     name=pipeline_name,
-    parameters=[
-        input_data
-    ],
-    steps=[
-        step_process, 
-        step_train,
-        step_model_create,
-    ],
+    parameters=[ input_data ],
+    steps=[ step_process, step_train, step_model_create, ],
 )
 # -
 

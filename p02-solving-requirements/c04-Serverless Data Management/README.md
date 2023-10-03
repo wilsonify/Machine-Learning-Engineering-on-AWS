@@ -1,21 +1,12 @@
-## Machine Learning Engineering on AWS
+## Serverless Data Management on AWS
 
-<a href="https://www.packtpub.com/product/machine-learning-engineering-on-aws/9781803247595"><img src="https://static.packt-cdn.com/products/9781803247595/cover/smaller" alt="Book Name" height="100px" align="left"></a>
-
-**Chapter 4: Serverless Data Management on AWS** <br />
-This chapter presents several severless solutions available such as Amazon Redshift Serverless and AWS Lake Formation when managing and querying data on AWS.
-
-<br />
-
-### I. Links
-
-| Shortened              | Original                                                                                                                           |
-|------------------------|------------------------------------------------------------------------------------------------------------------------------------|
-| https://bit.ly/3L6FsRg | https://raw.githubusercontent.com/PacktPublishing/Machine-Learning-Engineering-on-AWS/main/chapter04/synthetic.bookings.100000.csv |
+This chapter presents several severless solutions available 
+such as Amazon Redshift Serverless and AWS Lake Formation 
+when managing and querying data on AWS.
 
 ### II. Commands
 
-#### ➤ Preparing the Essential Prerequisites
+#### Prerequisites
 
 ##### Creating an IAM User
 
@@ -42,49 +33,29 @@ This chapter presents several severless solutions available such as Amazon Redsh
 }
 ```
 
-#### ➤ Running Analytics at Scale with Amazon Redshift Serverless
+####  Running Analytics at Scale with Amazon Redshift Serverless
 
 ##### Uploading the dataset to S3
 
 ```
-wget https://bit.ly/3L6FsRg -O synthetic.bookings.100000.csv
-
-
-head synthetic.bookings.100000.csv
-
-
-BUCKET_NAME=<INSERT BUCKET NAME>
-aws s3 mb s3://$BUCKET_NAME
-
-
-FILE=synthetic.bookings.100000.csv
-aws s3 cp $FILE s3://$BUCKET_NAME/input/$FILE
+wget https://raw.githubusercontent.com/PacktPublishing/Machine-Learning-Engineering-on-AWS/main/chapter04/synthetic.bookings.100000.csv -O synthetic.bookings.100000.csv
+aws s3 cp synthetic.bookings.100000.csv s3://<INSERT BUCKET NAME>/input/synthetic.bookings.100000.csv
 ```
-
-
 
 ##### Querying the Database
 
 ```
 SELECT * FROM dev.public.bookings;
-
-
 SELECT COUNT(*) FROM dev.public.bookings WHERE is_cancelled = 0;
-
-
 SELECT * FROM dev.public.bookings WHERE is_cancelled = 1 AND previous_cancellations > 0;
-
-
 SELECT * FROM dev.public.bookings WHERE is_cancelled = 1 AND days_in_waiting_list > 50;
-
-
 SELECT booking_changes, has_booking_changes, *
 FROM dev.public.bookings
-WHERE
-(booking_changes=0 AND has_booking_changes='True')
-OR
-(booking_changes>0 AND has_booking_changes='False');
-
+WHERE (
+  booking_changes=0 AND has_booking_changes='True'
+  ) OR (
+  booking_changes>0 AND has_booking_changes='False'
+);
 
 SELECT total_of_special_requests,
 has_special_requests, *
@@ -122,34 +93,22 @@ IAM_ROLE 'arn:aws:iam::<ACCOUNT ID>:role/service-role/<ROLE NAME>'
 FORMAT AS CSV DELIMITER ',' 
 PARALLEL ON
 HEADER;
-
-
 BUCKET_NAME=<INSERT BUCKET NAME>
 aws s3 ls s3://$BUCKET_NAME/unloaded/
-
-
 mv * /tmp
-
-
 aws s3 cp s3://$BUCKET_NAME/unloaded/ . --recursive
-
-
 ls
-
-
 head *
 ```
 
-#### ➤ Setting up Lake Formation
+####  Setting up Lake Formation
 
 ##### Running SQL queries using Athena
 
 ```
 SELECT * FROM "AwsDataCatalog"."mle-ch4-db"."unloaded" limit 10;
 
-
 SELECT COUNT(*) FROM "AwsDataCatalog"."mle-ch4-db"."unloaded" WHERE is_cancelled=0;
-
 
 SELECT * 
 FROM "AwsDataCatalog"."mle-ch4-db"."unloaded" 
