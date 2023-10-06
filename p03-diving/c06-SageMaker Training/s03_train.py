@@ -4,7 +4,7 @@ from sagemaker import image_uris
 
 
 def map_path(source):
-    s3_bucket = "<INSERT S3 BUCKET HERE>"
+    s3_bucket = "064592191516-ml-engineering"
     prefix = "ch06"
     return f's3://{s3_bucket}/{prefix}/{source}'
 

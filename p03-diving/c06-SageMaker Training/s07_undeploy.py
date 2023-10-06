@@ -16,7 +16,7 @@ estimator = sagemaker.estimator.Estimator(
     role=role,
     instance_count=2,
     instance_type='ml.p2.xlarge',
-    output_path=output_path,
+    output_path='s3://064592191516-ml-engineering/ch06/output',
     sagemaker_session=session,
     enable_network_isolation=True
 )

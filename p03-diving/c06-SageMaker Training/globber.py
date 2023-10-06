@@ -17,14 +17,3 @@ def glob_s3(glob_pattern):
         if is_matched:
             matched_objects.append(key)
     return matched_objects
-
-
-training_samples = glob_s3(f"c06/train/**/*.png")
-n_training_samples = len(training_samples)
-print(f"n_training_samples = {n_training_samples}")
-
-for i in range(0, 10):
-    image_files = glob_s3(f"c06/train/{i}/*.png")
-    print(f'---{i}---')
-    print(f"image_files = {image_files}")
-    # ipyplot.plot_images(image_files, max_images=5, img_width=128)

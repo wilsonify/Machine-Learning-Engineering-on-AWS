@@ -13,7 +13,7 @@ from sagemaker.workflow.steps import ProcessingStep, TrainingStep
 role = get_execution_role()  # Define SageMaker execution role
 sagemaker_session = sagemaker.Session()  # Define SageMaker session
 
-s3_bucket = ParameterString(name="S3Bucket", default_value="your-s3-bucket-name")
+s3_bucket = ParameterString(name="S3Bucket", default_value="064592191516-ml-engineering")
 s3_prefix = ParameterString(name="S3Prefix", default_value="your-s3-prefix")
 
 # Create a SageMaker Processing step for the "download" operation

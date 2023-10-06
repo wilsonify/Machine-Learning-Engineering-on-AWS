@@ -3,16 +3,21 @@ all: clean deploy
 
 clean:
 	rm -rf tmp && mkdir -p tmp
-	time aws s3 rm s3://s3_bucket --recursive
+	rm -rf tmp2 && mkdir -p tmp2
+	aws s3 rm s3://s3_bucket --recursive
+	aws s3 rm s3://s3_bucket --recursive
 
 download:
-	wget -O tmp/batch1.zip https://bit.ly/37zmQeb
+	wget -O tmp/batch1.zip https://github.com/wilsonify/Machine-Learning-Engineering-on-AWS/raw/main/p03-diving/c06-SageMaker%20Training/batch1.zip
+	wget -O tmp2/batch2.zip https://github.com/wilsonify/Machine-Learning-Engineering-on-AWS/raw/main/p03-diving/c06-SageMaker%20Training/batch2.zip
 
 unzip: download
-	cd tmp && time unzip batch1.zip && time rm batch1.zip
+	cd tmp && unzip batch1.zip && rm batch1.zip && cd ..
+	cd tmp2 && unzip batch2.zip && rm batch2.zip && cd ..
 
 upload: unzip
-	time aws s3 cp --recursive tmp/. s3://{s3_bucket}/{prefix}/
+	aws s3 cp --recursive tmp/. s3://064592191516-ml-engineering/c06/
+	aws s3 cp --recursive tmp2/. s3://064592191516-ml-engineering/c06/
 
 split: upload
 	python split.py

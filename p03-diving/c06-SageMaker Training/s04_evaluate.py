@@ -34,6 +34,22 @@ def predict(filename, endpoint):
     return get_class_from_results(results)
 
 
+def glob_s3(glob_pattern):
+    import boto3
+    import fnmatch
+    s3_client = boto3.client('s3')
+    first_asterisk_index = glob_pattern.find('*')
+    s3_prefix = glob_pattern[:first_asterisk_index] if first_asterisk_index >= 0 else glob_pattern
+    response = s3_client.list_objects_v2(Bucket=s3_bucket, Prefix=s3_prefix)
+    matched_objects = []
+    for obj in response.get('Contents', []):
+        key = obj['Key']
+        is_matched = fnmatch.fnmatch(key, glob_pattern)
+        if is_matched:
+            matched_objects.append(key)
+    return matched_objects
+
+
 def main():
-    for filename in glob.glob("tmp/test"):
+    for filename in glob_s3("tmp/test"):
         print(predict(f"tmp/test/{filename}"))

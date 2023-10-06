@@ -1,133 +1,84 @@
-# ---
-# jupyter:
-#   jupytext:
-#     text_representation:
-#       extension: .py
-#       format_name: light
-#       format_version: '1.5'
-#       jupytext_version: 1.15.2
-#   kernelspec:
-#     display_name: Python 3 (Data Science)
-#     language: python
-#     name: python3__SAGEMAKER_INTERNAL__arn:aws:sagemaker:us-west-2:236514542706:image/datascience-1.0
-# ---
+import random
+import string
 
-s3_bucket = "<INSERT S3 BUCKET HERE>"
-prefix = "ch06"
-
-# %store -r role
-# %store -r region_name
-# %store -r job_name
-# %store -r image
-# %store -r analytics_df
-
-job_name
-
-# +
 import sagemaker
 from sagemaker.estimator import Estimator
 
+
+def generate_random_string():
+    return ''.join(random.sample(string.ascii_uppercase, 12))
+
+
+image = ""
+job_name = "job01"
+role = ""
+s3_bucket = "064592191516-ml-engineering"
+prefix = "ch06"
+
+
+def glob_s3(glob_pattern):
+    import boto3
+    import fnmatch
+    s3_client = boto3.client('s3')
+    first_asterisk_index = glob_pattern.find('*')
+    s3_prefix = glob_pattern[:first_asterisk_index] if first_asterisk_index >= 0 else glob_pattern
+    response = s3_client.list_objects_v2(Bucket=s3_bucket, Prefix=s3_prefix)
+    matched_objects = []
+    for obj in response.get('Contents', []):
+        key = obj['Key']
+        is_matched = fnmatch.fnmatch(key, glob_pattern)
+        if is_matched:
+            matched_objects.append(key)
+    return matched_objects
+
+
 session = sagemaker.Session()
 previous = Estimator.attach(job_name)
-# -
 
 previous.logs()
 
 model_data = previous.model_data
-model_data
-
-# +
-import string 
-import random
-
-def generate_random_string():
-    return ''.join(
-        random.sample(
-        string.ascii_uppercase,12)
-    )
-
-
-# -
+print(f"model_data={model_data}")
 
 base_job_name = generate_random_string()
-base_job_name
+print(f"base_job_name = {base_job_name}")
 
-checkpoint_folder="checkpoints"
-checkpoint_s3_bucket="s3://{}/{}/{}".format(s3_bucket, base_job_name, checkpoint_folder)
-checkpoint_local_path="/opt/ml/checkpoints"
+checkpoint_folder = "checkpoints"
+checkpoint_s3_bucket = f"s3://{s3_bucket}/{base_job_name}/{checkpoint_folder}"
+checkpoint_local_path = "/opt/ml/checkpoints"
 
-# !rm -rf tmp2 && mkdir -p tmp2
-
-# +
-# %%time
-
-# !wget -O tmp2/batch2.zip https://bit.ly/3KyonQE
-
-# +
-# %%time
-
-# !cd tmp2 && unzip batch2.zip && rm batch2.zip
-
-# +
-import glob
-
-training_samples = glob.glob(f"tmp2/train/*/*.png")
-
+training_samples = glob_s3(f"tmp2/train/*/*.png")
 len(training_samples)
 
 
-# -
-
-# !aws s3 mb s3://{s3_bucket}
-
-# +
-# %%time
-
-# !aws s3 rm s3://{s3_bucket} --recursive
-
-# +
-# %%time
-
-# !aws s3 cp tmp2/.  s3://{s3_bucket}/{prefix}/ --recursive
-
-# +
 def map_path(source):
-    return 's3://{}/{}/{}'.format(
-        s3_bucket, 
-        prefix, 
-        source
-    )
+    return f's3://{s3_bucket}/{prefix}/{source}'
+
 
 def map_input(source):
     path = map_path(source)
-    
     return sagemaker.inputs.TrainingInput(
-        path, 
-        distribution='FullyReplicated', 
-        content_type='application/x-image', 
+        path,
+        distribution='FullyReplicated',
+        content_type='application/x-image',
         s3_data_type='S3Prefix'
     )
 
 
-# -
-
-data_channels = {}
-
-channels = ["train", 
-            "validation",
-            "train_lst",
-            "validation_lst"]
-
-for channel in channels:
-    data_channels[channel] = map_input(channel)
+data_channels = {
+    "train": map_input("train"),
+    "validation": map_input("validation"),
+    "train_lst": map_input("train_lst"),
+    "validation_lst": map_input("validation_lst")
+}
 
 output_path = map_path("output")
-output_path
+print(f"output_path = {output_path}")
 
 estimator = sagemaker.estimator.Estimator(
     image,
-    role, 
-    instance_count=2, 
+    role,
+    instance_count=2,
     instance_type='ml.p2.xlarge',
     output_path=output_path,
     sagemaker_session=session,
@@ -150,19 +101,15 @@ hyperparameters = {
     'epochs': 3,
     'learning_rate': 0.01,
     'top_k': 5,
-    'precision_dtype': 'float32'    
+    'precision_dtype': 'float32'
 }
 
 estimator.set_hyperparameters(**hyperparameters)
 
-estimator.__dict__
+print(f"estimator.__dict__ = {estimator.__dict__}")
 
-# +
-# %%time
+estimator.fit(inputs=data_channels, logs="All")
 
-estimator.fit(inputs=data_channels, logs=True)
-# -
+print(f"estimator.model_data = {estimator.model_data}")
 
-estimator.model_data
-
-# !aws s3 ls {estimator.checkpoint_s3_uri} --recursive
+f"checkpoint_s3_uri = {estimator.checkpoint_s3_uri}"

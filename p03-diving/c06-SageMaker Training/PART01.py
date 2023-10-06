@@ -1,4 +1,3 @@
-
 # !rm -rf tmp && mkdir -p tmp
 
 # !wget -O tmp/batch1.zip https://bit.ly/37zmQeb
@@ -11,23 +10,56 @@
 
 # !pip3 install ipyplot
 
-import glob
-
 # +
 import ipyplot
 
+s3_bucket = "064592191516-ml-engineering"
+prefix = "ch06"
+
+
+def glob_s3(glob_pattern):
+    import boto3
+    import fnmatch
+    s3_client = boto3.client('s3')
+    first_asterisk_index = glob_pattern.find('*')
+    s3_prefix = glob_pattern[:first_asterisk_index] if first_asterisk_index >= 0 else glob_pattern
+    response = s3_client.list_objects_v2(Bucket=s3_bucket, Prefix=s3_prefix)
+    matched_objects = []
+    for obj in response.get('Contents', []):
+        key = obj['Key']
+        is_matched = fnmatch.fnmatch(key, glob_pattern)
+        if is_matched:
+            matched_objects.append(key)
+    return matched_objects
+
+
 for i in range(0, 10):
-    image_files = glob.glob(f"tmp/train/{i}/*.png")
+    image_files = glob_s3(f"tmp/train/{i}/*.png")
     print(f'---{i}---')
     ipyplot.plot_images(image_files,
                         max_images=5,
                         img_width=128)
+
+
 # -
 
-s3_bucket = "<INSERT S3 BUCKET HERE>"
-prefix = "ch06"
+def glob_s3(glob_pattern):
+    import boto3
+    import fnmatch
+    s3_client = boto3.client('s3')
+    first_asterisk_index = glob_pattern.find('*')
+    s3_prefix = glob_pattern[:first_asterisk_index] if first_asterisk_index >= 0 else glob_pattern
+    response = s3_client.list_objects_v2(Bucket=s3_bucket, Prefix=s3_prefix)
+    matched_objects = []
+    for obj in response.get('Contents', []):
+        key = obj['Key']
+        is_matched = fnmatch.fnmatch(key, glob_pattern)
+        if is_matched:
+            matched_objects.append(key)
+    return matched_objects
 
-training_samples = glob.glob(f"tmp/train/*/*.png")
+
+training_samples = glob_s3(f"tmp/train/*/*.png")
 len(training_samples)
 
 # !aws s3 mb s3://{s3_bucket}
@@ -189,7 +221,24 @@ def predict(filename, endpoint=endpoint):
 # !ls tmp/test
 
 # results = !ls -1
-for filename in glob.glob("tmp/test"):
+
+def glob_s3(glob_pattern):
+    import boto3
+    import fnmatch
+    s3_client = boto3.client('s3')
+    first_asterisk_index = glob_pattern.find('*')
+    s3_prefix = glob_pattern[:first_asterisk_index] if first_asterisk_index >= 0 else glob_pattern
+    response = s3_client.list_objects_v2(Bucket=s3_bucket, Prefix=s3_prefix)
+    matched_objects = []
+    for obj in response.get('Contents', []):
+        key = obj['Key']
+        is_matched = fnmatch.fnmatch(key, glob_pattern)
+        if is_matched:
+            matched_objects.append(key)
+    return matched_objects
+
+
+for filename in glob_s3("tmp/test"):
     print(predict(f"tmp/test/{filename}"))
 
 endpoint.delete_endpoint()
