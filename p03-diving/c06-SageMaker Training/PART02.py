@@ -51,12 +51,8 @@ training_samples = glob_s3(f"tmp2/train/*/*.png")
 len(training_samples)
 
 
-def map_path(source):
-    return f's3://{s3_bucket}/{prefix}/{source}'
-
-
 def map_input(source):
-    path = map_path(source)
+    path = f's3://{s3_bucket}/{prefix}/{source}'
     return sagemaker.inputs.TrainingInput(
         path,
         distribution='FullyReplicated',
@@ -72,12 +68,12 @@ data_channels = {
     "validation_lst": map_input("validation_lst")
 }
 
-output_path = map_path("output")
+output_path = f's3://{s3_bucket}/{prefix}/output'
 print(f"output_path = {output_path}")
 
 estimator = sagemaker.estimator.Estimator(
-    image,
-    role,
+    image_uri=image,
+    role=role,
     instance_count=2,
     instance_type='ml.p2.xlarge',
     output_path=output_path,

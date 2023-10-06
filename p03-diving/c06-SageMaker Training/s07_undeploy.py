@@ -6,9 +6,9 @@ from sagemaker.base_serializers import IdentitySerializer
 session = sagemaker.Session()
 role = sagemaker.get_execution_role()
 region_name = boto3.Session().region_name
-registry = ""
-hostname = ""
-repository = ""
+registry = "f'064592191516"
+hostname = "ecr"
+repository = "sagemaker-image-classification"
 image = f"{registry}.dkr.{hostname}/{repository}"
 
 estimator = sagemaker.estimator.Estimator(

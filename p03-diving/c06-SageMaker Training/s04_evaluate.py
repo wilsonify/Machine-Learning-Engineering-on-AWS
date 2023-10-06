@@ -2,6 +2,8 @@ import json
 
 from IPython.display import Image, display
 
+s3_bucket = "064592191516-ml-engineering"
+
 
 def get_class_from_results(results):
     results_prob_list = json.loads(results)

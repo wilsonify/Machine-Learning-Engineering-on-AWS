@@ -3,16 +3,9 @@ import sagemaker
 from sagemaker import image_uris
 
 
-def map_path(source):
-    s3_bucket = "064592191516-ml-engineering"
-    prefix = "ch06"
-    return f's3://{s3_bucket}/{prefix}/{source}'
-
-
 def map_input(source):
-    path = map_path(source)
     return sagemaker.inputs.TrainingInput(
-        s3_data=path,
+        s3_data=f's3://064592191516-ml-engineering/ch06/{source}',
         distribution='FullyReplicated',
         content_type='application/x-image',
         s3_data_type='S3Prefix'
@@ -38,7 +31,7 @@ data_channels = {
     "validation_lst": map_input("validation_lst")
 }
 
-output_path = map_path("output")
+output_path = f's3://064592191516-ml-engineering/ch06/output'
 
 estimator = sagemaker.estimator.Estimator(
     image_uri=image,
@@ -65,7 +58,7 @@ hyperparameters = {
 estimator.set_hyperparameters(**hyperparameters)
 print(f"estimator.__dict__ = {estimator.__dict__}")
 
-estimator.fit(inputs=data_channels, logs=True)
+estimator.fit(inputs=data_channels, logs="All")
 
 print(f"estimator.model_data = {estimator.model_data}")
 print(f"estimator.latest_training_job.name = {estimator.latest_training_job.name}")
