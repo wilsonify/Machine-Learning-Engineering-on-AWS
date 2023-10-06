@@ -9,9 +9,9 @@ def generate_random_string():
     return ''.join(random.sample(string.ascii_uppercase, 12))
 
 
-image = ""
-job_name = "job01"
-role = ""
+image = "811284229777.dkr.ecr.us-east-1.amazonaws.com/image-classification:1"
+job_name = ""
+role = sagemaker.get_execution_role()
 s3_bucket = "064592191516-ml-engineering"
 prefix = "ch06"
 

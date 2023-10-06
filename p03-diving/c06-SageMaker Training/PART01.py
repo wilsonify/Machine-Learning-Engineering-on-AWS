@@ -79,26 +79,16 @@ role = sagemaker.get_execution_role()
 region_name = boto3.Session().region_name
 
 # +
-image = sagemaker.image_uris.retrieve(
-    "image-classification",
-    region_name,
-    "1"
-)
+image = sagemaker.image_uris.retrieve("image-classification", region_name, "1")
 
-image
+print(f"image={image}")
 
 
 # +
-def map_path(source):
-    return 's3://{}/{}/{}'.format(
-        s3_bucket,
-        prefix,
-        source
-    )
 
 
 def map_input(source):
-    path = map_path(source)
+    path = f's3://{s3_bucket}/{prefix}/{source}'
 
     return sagemaker.inputs.TrainingInput(
         path,
@@ -120,15 +110,12 @@ channels = ["train",
 for channel in channels:
     data_channels[channel] = map_input(channel)
 
-output_path = map_path("output")
-output_path
-
 estimator = sagemaker.estimator.Estimator(
     image,
     role,
     instance_count=2,
     instance_type='ml.p2.xlarge',
-    output_path=output_path,
+    output_path=f's3://{s3_bucket}/{prefix}/output',
     sagemaker_session=session,
     enable_network_isolation=True
 )
