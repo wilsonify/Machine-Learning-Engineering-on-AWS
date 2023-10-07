@@ -32,3 +32,15 @@ This chapter focuses on using SageMaker Pipelines to design and build automated 
 | deploy-model-to-new-endpoint      | https://github.com/PacktPublishing/Machine-Learning-Engineering-on-AWS/blob/main/chapter11/deploy-model-to-new-endpoint.py      |
 | deploy-model-to-existing-endpoint | https://github.com/PacktPublishing/Machine-Learning-Engineering-on-AWS/blob/main/chapter11/deploy-model-to-existing-endpoint.py |
 | utils.py                          | https://github.com/PacktPublishing/Machine-Learning-Engineering-on-AWS/blob/main/chapter11/utils.py                             |
+
+### Diagram
+
+```mermaid
+graph TD
+  prepare --> train
+  train --> repack
+  repack --> register
+  register --> checkEndpoint
+  checkEndpoint --> DeployNewEndpoint
+  checkEndpoint --> UpdateExistingEndpoint
+```
