@@ -9,7 +9,7 @@
 #   kernelspec:
 #     display_name: Python 3 (Data Science)
 #     language: python
-#     name: python3__SAGEMAKER_INTERNAL__arn:aws:sagemaker:us-west-2:236514542706:image/datascience-1.0
+#     name: python3__SAGEMAKER_INTERNAL__arn:aws:sagemaker:us-east-1:236514542706:image/datascience-1.0
 # ---
 
 # %store -r s3_bucket

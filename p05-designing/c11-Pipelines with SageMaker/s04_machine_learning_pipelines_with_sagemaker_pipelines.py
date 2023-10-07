@@ -9,7 +9,7 @@
 #   kernelspec:
 #     display_name: Python 3 (Data Science)
 #     language: python
-#     name: python3__SAGEMAKER_INTERNAL__arn:aws:sagemaker:us-west-2:236514542706:image/datascience-1.0
+#     name: python3__SAGEMAKER_INTERNAL__arn:aws:sagemaker:us-east-1:236514542706:image/datascience-1.0
 # ---
 
 # !wget -O processing.py https://bit.ly/3QiGDQO
@@ -92,7 +92,7 @@ model_path = f"s3://{s3_bucket}/{prefix}/model/"
 
 model_id = "autogluon-classification-ensemble"
 
-region_name = "us-west-2"
+region_name = "us-east-1"
 
 # +
 from sagemaker import image_uris
