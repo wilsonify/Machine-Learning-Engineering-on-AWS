@@ -1,94 +1,95 @@
-# ---
-# jupyter:
-#   jupytext:
-#     text_representation:
-#       extension: .py
-#       format_name: light
-#       format_version: '1.5'
-#       jupytext_version: 1.15.2
-#   kernelspec:
-#     display_name: Python 3 (Data Science)
-#     language: python
-#     name: python3__SAGEMAKER_INTERNAL__arn:aws:sagemaker:us-east-1:236514542706:image/datascience-1.0
-# ---
+# name: python3__SAGEMAKER_INTERNAL__arn:aws:sagemaker:us-east-1:236514542706:image/datascience-1.0
+import fnmatch
+import json
 
-# %store -r s3_bucket
-# %store -r capture_upload_path
+import boto3
+import pandas as pd
+from flatten_dict import flatten
 
-# +
-# results = !aws s3 ls {capture_upload_path} --recursive
+s3_bucket = "064592191516-ml-engineering"
+prefix = "c08"
+capture_upload_path = f"s3://{s3_bucket}/{prefix}/data-capture"
+
+
+def glob_s3(glob_pattern):
+    s3_client = boto3.client('s3')
+    first_asterisk_index = glob_pattern.find('*')
+    s3_prefix = glob_pattern[:first_asterisk_index] if first_asterisk_index >= 0 else glob_pattern
+    response = s3_client.list_objects_v2(Bucket=s3_bucket, Prefix=s3_prefix)
+    matched_objects = []
+    for obj in response.get('Contents', []):
+        key = obj['Key']
+        is_matched = fnmatch.fnmatch(key, glob_pattern)
+        if is_matched:
+            matched_objects.append(key)
+    return matched_objects
+
+
+results = glob_s3(capture_upload_path)
 processed = []
 
 for result in results:
     partial = result.split()[-1]
     path = f"s3://{s3_bucket}/{partial}"
     processed.append(path)
-    
-processed
-# -
+
+print(f"processed = {processed}")
 
 # !mkdir -p captured
 
 for index, path in enumerate(processed):
     print(index, path)
-    # !aws s3 cp {path} captured/{index}.jsonl
+    s3_client = boto3.client('s3')
+    s3_client.copy_object(
+        Bucket=s3_bucket,
+        CopySource={'Bucket': s3_bucket, 'Key': path},
+        Key=f"captured/{index}.jsonl"
+    )
 
-# +
-import json
 
 def load_json_file(path):
     output = []
-    
     with open(path) as f:
-        output = [json.loads(line) for line in f]
-        
+        for line in f:
+            output += [json.loads(line)]
+
     return output
 
 
-# +
 all_json = []
 
 for index, _ in enumerate(processed):
     print(f"INDEX: {index}")
     new_records = load_json_file(f"captured/{index}.jsonl")
     all_json = all_json + new_records
-    
-    
-all_json
-# -
 
-# !pip3 install flatten-dict
-
-from flatten_dict import flatten
+print(f"all_json = {all_json}")
 
 first = flatten(all_json[0], reducer='dot')
-first
+print(f"first = {first}")
 
-# +
 flattened_json = []
 
 for entry in all_json:
     result = flatten(entry, reducer='dot')
     flattened_json.append(result)
-    
-flattened_json
-# -
 
-import pandas as pd
+print(f"flattened_json = {flattened_json}")
+
 df = pd.DataFrame(flattened_json)
-df
+print(f"df.head(5) = {df.head(5)}")
 
 df[['x', 'y']] = df['captureData.endpointInput.data'].str.split(',', 1, expand=True)
 
-df
+print(f"df.head(5) = {df.head(5)}")
 
 df['predicted_label'] = df['captureData.endpointOutput.data'].str.strip()
 
-df
+print(f"df.head(5) = {df.head(5)}")
 
 clean_df = df[['predicted_label', 'x', 'y']]
 
-clean_df.head()
+print(f"clean_df.head(5) = {clean_df.head(5)}")
 
 clean_df = clean_df.astype({
     'predicted_label': 'int',
@@ -96,4 +97,4 @@ clean_df = clean_df.astype({
     'y': 'float',
 })
 
-clean_df.head()
+print(f"clean_df.head(5) = {clean_df.head(5)}")
