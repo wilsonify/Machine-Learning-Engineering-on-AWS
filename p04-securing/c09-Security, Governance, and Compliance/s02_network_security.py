@@ -1,8 +1,8 @@
 from sagemaker.estimator import Estimator
-from tensorflow.keras.layers import Input, Lambda, Softmax
-from tensorflow.keras.models import Model
-from tensorflow.keras.models import load_model
-from tensorflow.keras.optimizers import Adam
+from tensorflow.python.keras.layers import Input, Lambda, Softmax
+from tensorflow.python.keras.models import Model
+from tensorflow.python.keras.models import load_model
+from tensorflow.python.keras.optimizer_v1 import Adam
 
 image = ""
 role = ""
