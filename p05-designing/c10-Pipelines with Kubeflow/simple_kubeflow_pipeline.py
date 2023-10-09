@@ -9,8 +9,7 @@ from sklearn.linear_model import LinearRegression
 from sklearn.model_selection import train_test_split
 
 
-def download_dataset(df_all_data_path: OutputPath(str)):
-    url = "https://github.com/wilsonify/Machine-Learning-Engineering-on-AWS/raw/main/p05-designing/c10-Pipelines%20with%20Kubeflow/management_experience_and_salary.csv"
+def download_dataset(url: InputPath(str), df_all_data_path: OutputPath(str)):
     df_all_data = pd.read_csv(url)
     df_all_data.to_csv(df_all_data_path, header=True, index=False)
 
@@ -56,28 +55,28 @@ def perform_sample_prediction(model_path: InputPath(str)):
 
 
 download_dataset_op = create_component_from_func(
-    download_dataset,
+    func=download_dataset,
     packages_to_install=['pandas']
 )
 
 process_data_op = create_component_from_func(
-    process_data,
-    packages_to_install=['pandas', 'sklearn']
+    func=process_data,
+    packages_to_install=['pandas', 'scikit-learn']
 )
 
 train_model_op = create_component_from_func(
-    train_model,
-    packages_to_install=['pandas', 'sklearn', 'joblib']
+    func=train_model,
+    packages_to_install=['pandas', 'scikit-learn', 'joblib']
 )
 
 evaluate_model_op = create_component_from_func(
-    evaluate_model,
-    packages_to_install=['pandas', 'joblib', 'sklearn']
+    func=evaluate_model,
+    packages_to_install=['pandas', 'joblib', 'scikit-learn']
 )
 
 perform_sample_prediction_op = create_component_from_func(
-    perform_sample_prediction,
-    packages_to_install=['joblib', 'sklearn']
+    func=perform_sample_prediction,
+    packages_to_install=['joblib', 'scikit-learn']
 )
 
 
@@ -86,12 +85,16 @@ perform_sample_prediction_op = create_component_from_func(
     description='Basic pipeline'
 )
 def basic_pipeline():
-    DOWNLOAD_DATASET = download_dataset_op()
-    PROCESS_DATA = process_data_op(DOWNLOAD_DATASET.output)
-    TRAIN_MODEL = train_model_op(PROCESS_DATA.outputs['df_training_data'])
-    EVALUATE_MODEL = evaluate_model_op(TRAIN_MODEL.outputs['model'], PROCESS_DATA.outputs['df_test_data'])
-    PERFORM_SAMPLE_PREDICTION = perform_sample_prediction_op(TRAIN_MODEL.outputs['model'])
-    PERFORM_SAMPLE_PREDICTION.after(EVALUATE_MODEL)
+    url = "https://github.com/wilsonify/Machine-Learning-Engineering-on-AWS/raw/main/p05-designing/c10-Pipelines%20with%20Kubeflow/management_experience_and_salary.csv"
+    download_dataset_step = download_dataset_op(url)
+    process_data_step = process_data_op(download_dataset_step.output)
+    train_model_step = train_model_op(process_data_step.outputs['df_training_data'])
+    evaluate_model_step = evaluate_model_op(
+        train_model_step.outputs['model_path'],
+        process_data_step.outputs['df_test_data']
+    )
+    perform_sample_prediction_step = perform_sample_prediction_op(train_model_step.outputs['model'])
+    perform_sample_prediction_step.after(evaluate_model_step)
 
 
 Compiler().compile(basic_pipeline, 'basic_pipeline.yaml')

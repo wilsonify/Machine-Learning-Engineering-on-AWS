@@ -1,0 +1,17 @@
+---
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: kubeflow-eks-000
+  region: us-west-2
+  version: "1.21"
+
+availabilityZones: [ "us-west-2a", "us-west-2b", "us-west-2c", "us-west-2d" ]
+
+managedNodeGroups:
+  - name: nodegroup
+    desiredCapacity: 5
+    instanceType: m5.xlarge
+    ssh:
+      enableSsm: true
