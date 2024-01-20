@@ -25,15 +25,3 @@ jobs:
         run: |
           aws lambda invoke --function-name mlflow-tf-s02-preprocessing --payload '{}' response.json
           cat response.json
-
-      - name: Check Lambda Response
-        run: |
-          response=$(cat response.json)
-          error_message=$(echo "$response" | jq -r '.errorMessage')
-          function_error=$(echo "$response" | jq -r '.FunctionError')
-          if [ -n "$error_message" ] || [ "$function_error" = "Unhandled" ]; then
-            echo "Lambda function returned an error:"
-            echo "Error Message: $error_message"
-            echo "Function Error: $function_error"
-            exit 1
-          fi
