@@ -18,9 +18,11 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.AWS_IAM_ROLE_ARN }}
-          role-duration-seconds: 600
           aws-region: ${{ secrets.AWS_REGION }}
           role-session-name: GitHub_to_AWS_via_FederatedOIDC
+
+      - name: Hello from AWS
+        run: aws sts get-caller-identity
 
       - name: Trigger Lambda Function
         run: |
