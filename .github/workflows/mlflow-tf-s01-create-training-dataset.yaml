@@ -5,6 +5,10 @@ on:
   schedule:
     - cron: '0 0 * * 1'  # Run every Monday at midnight
 
+permissions: # Permission can be added at job level or workflow level
+  id-token: write   # This is required for requesting the JWT
+  contents: read    # This is required for actions/checkout
+
 jobs:
   trigger-lambda:
     runs-on: ubuntu-latest
