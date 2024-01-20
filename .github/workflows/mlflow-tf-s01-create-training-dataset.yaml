@@ -1,0 +1,24 @@
+name: Weekly Trigger Lambda Function
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 0 * * 1'  # Run every Monday at midnight
+
+jobs:
+  trigger-lambda:
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: ${{ secrets.AWS_IAM_ROLE_ARN }}
+          role-duration-seconds: 600
+          aws-region: ${{ secrets.AWS_REGION }}
+          role-session-name: $(echo "${{ github.repository }}-${{ github.job }}" | tr -d '[:space:]')
+
+      - name: Trigger Lambda Function
+        run: |
+          aws lambda invoke --function-name mlflow-tf-s01-create-training-dataset --payload '{}' response.json
+          cat response.json
