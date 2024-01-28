@@ -1,0 +1,27 @@
+name: Weekly Trigger Step 03 - Train
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 0 * * 1,3,5'  # Run every Monday, Wednesday, and Friday at midnight
+
+permissions: # Permission can be added at job level or workflow level
+  id-token: write   # This is required for requesting the JWT
+  contents: read    # This is required for actions/checkout
+
+jobs:
+  trigger-lambda:
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_IAM_ROLE_ARN }}
+          aws-region: ${{ secrets.AWS_REGION }}
+          role-session-name: GitHub_to_AWS_via_FederatedOIDC
+
+      - name: Trigger Lambda Function
+        run: |
+          aws lambda invoke --function-name mlflow-tf-s03-train --payload '{}' response.json
+          cat response.json
