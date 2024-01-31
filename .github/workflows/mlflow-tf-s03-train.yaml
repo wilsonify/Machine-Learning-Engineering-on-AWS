@@ -1,4 +1,4 @@
-name: Weekly Trigger Step 03 - Train
+name: MWF Trigger Step 03 - Train
 
 on:
   workflow_dispatch:
