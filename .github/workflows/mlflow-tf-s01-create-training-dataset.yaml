@@ -1,4 +1,4 @@
-name: S01 Create Training Dataset - Weekly
+name: S01 - Create Training Dataset - Weekly
 
 on:
   workflow_dispatch:
