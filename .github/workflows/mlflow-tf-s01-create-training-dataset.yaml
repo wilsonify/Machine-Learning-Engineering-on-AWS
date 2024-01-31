@@ -1,4 +1,4 @@
-name: Weekly Trigger Step 01 - Create Training Dataset
+name: S01 Create Training Dataset - Weekly
 
 on:
   workflow_dispatch:
