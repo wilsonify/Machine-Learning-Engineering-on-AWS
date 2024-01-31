@@ -1,4 +1,4 @@
-name: MWF Trigger Step 03 - Train
+name: S03 - Train - MWF
 
 on:
   workflow_dispatch:
