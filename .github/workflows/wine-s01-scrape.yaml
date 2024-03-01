@@ -1,0 +1,33 @@
+name: S01 - Scrape Wine Dataset - Monthly
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 0 1 * *' # 1st of the month at midnight (minute=0 hour=0 day of month=1 month of year=any day of the week=any)
+
+
+permissions: # Permission can be added at job level or workflow level
+  id-token: write   # This is required for requesting the JWT
+  contents: read    # This is required for actions/checkout
+
+jobs:
+  trigger-lambda:
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_IAM_ROLE_ARN }}
+          aws-region: ${{ secrets.AWS_REGION }}
+          role-session-name: GitHub_to_AWS_via_FederatedOIDC
+
+      - name: Trigger Lambda - Top Level Pages
+        run: |
+          aws lambda invoke --function-name s01-wine-scrape-lambda --payload '{"strategy":"main_scrape_wine_pa"}' response.json
+          cat response.json
+
+      - name: Trigger Lambda - Enqueue Pages HTML to json
+        run: |
+          aws lambda invoke --function-name s01-wine-scrape-lambda --payload '{"strategy":"enqueue_page_html_to_json"}' response.json
+          cat response.json
