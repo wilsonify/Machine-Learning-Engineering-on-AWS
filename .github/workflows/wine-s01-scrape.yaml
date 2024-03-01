@@ -1,4 +1,4 @@
-name: S01 - Scrape Wine Dataset - Monthly
+name: Wine - S01 - Scrape Dataset - Monthly
 
 on:
   workflow_dispatch:
