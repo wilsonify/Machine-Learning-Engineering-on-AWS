@@ -12,6 +12,7 @@ permissions: # Permission can be added at job level or workflow level
 jobs:
   trigger-lambda:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
 
       - name: Configure AWS credentials
