@@ -1,6 +1,10 @@
+import json
+import gluon
+import mxnet
+
 def load_model():
-    sym_json = json_load(open('mx-mod-symbol.json'))
-    sym_json_string = json_dumps(sym_json)
+    sym_json = json.load(open('mx-mod-symbol.json'))
+    sym_json_string = json.dumps(sym_json)
 
     model = gluon.nn.SymbolBlock(
         outputs=mxnet.sym.load_json(sym_json_string),
