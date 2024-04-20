@@ -2,8 +2,8 @@ name: S02 - Preprocessing - Daily
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: '0 0 * * *'  # Run daily at midnight
+#  schedule:
+#    - cron: '0 0 * * *'  # Run daily at midnight
 
 permissions: # Permission can be added at job level or workflow level
   id-token: write   # This is required for requesting the JWT

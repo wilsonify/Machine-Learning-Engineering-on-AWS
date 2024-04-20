@@ -1,9 +1,9 @@
-name: S01 - Create Training Dataset - Weekly
+name: Wine - S02 - Scrape Missing - Weekly
 
 on:
   workflow_dispatch:
-#  schedule:
-#    - cron: '0 0 * * 1'  # Run every Monday at midnight
+  schedule:
+    - cron: '0 0 * * 0' # midnight every sunday
 
 permissions: # Permission can be added at job level or workflow level
   id-token: write   # This is required for requesting the JWT
@@ -21,7 +21,12 @@ jobs:
           aws-region: ${{ secrets.AWS_REGION }}
           role-session-name: GitHub_to_AWS_via_FederatedOIDC
 
-      - name: Trigger Lambda Function
+      - name: Trigger Lambda - Enqueue Detect Missing
         run: |
-          aws lambda invoke --function-name mlflow-tf-s01-create-training-dataset --payload '{}' response.json
+          aws lambda invoke --function-name s01-wine-scrape-lambda --cli-binary-format raw-in-base64-out --payload '{ "strategy" : "enqueue_detect_missing" }' response.json
+          cat response.json
+
+      - name: Trigger Lambda - Enqueue Correct Missing
+        run: |
+          aws lambda invoke --function-name s01-wine-scrape-lambda --cli-binary-format raw-in-base64-out --payload '{ "strategy" : "enqueue_correct_missing" }' response.json
           cat response.json

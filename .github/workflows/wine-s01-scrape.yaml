@@ -24,10 +24,15 @@ jobs:
 
       - name: Trigger Lambda - Top Level Pages
         run: |
-          aws lambda invoke --function-name s01-wine-scrape-lambda --cli-binary-format raw-in-base64-out --payload '{ "strategy" : "main_scrape_wine_pa" }' response.json
+          aws lambda invoke --function-name s01-wine-scrape-lambda --cli-binary-format raw-in-base64-out --payload '{ "strategy" : "enqueue_scrape_one_page_pa" }' response.json
           cat response.json
 
       - name: Trigger Lambda - Enqueue Pages HTML to json
         run: |
           aws lambda invoke --function-name s01-wine-scrape-lambda --cli-binary-format raw-in-base64-out --payload '{ "strategy" : "enqueue_page_html_to_json" }' response.json
+          cat response.json
+
+      - name: Trigger Lambda - Enqueue Json to CSV
+        run: |
+          aws lambda invoke --function-name s01-wine-scrape-lambda --cli-binary-format raw-in-base64-out --payload '{ "strategy" : "enqueue_json_to_csv" }' response.json
           cat response.json
